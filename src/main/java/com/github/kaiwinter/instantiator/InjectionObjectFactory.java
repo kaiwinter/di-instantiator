@@ -24,7 +24,7 @@ public final class InjectionObjectFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(InjectionObjectFactory.class);
 
     /**
-     * If not specified by the user {@link EJB} and {@link Inject} annotations will be processed.
+     * If not specified by the user {@link Inject} annotations will be processed.
      */
     @SuppressWarnings("unchecked")
     private static final Class<? extends Annotation>[] DEFAULT_ANNOTATIONS_TO_PROCESS = new Class[] { Inject.class };
