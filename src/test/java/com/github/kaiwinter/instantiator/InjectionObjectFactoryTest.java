@@ -100,12 +100,14 @@ public class InjectionObjectFactoryTest {
     @Test
     public void testInterfaceWithTwoImplementationsSetObjectForInterface() {
         InjectionObjectFactory factory = new InjectionObjectFactory();
-        factory.setImplementationForClassOrInterface(HaveTwoImplementationsBean.class, new Implementation2());
+        Implementation2 implementation2 = new Implementation2();
+        factory.setImplementationForClassOrInterface(HaveTwoImplementationsBean.class, implementation2);
 
         StartingServiceWithInterfaceWithTwoImplementations instance = factory
                 .getInstance(StartingServiceWithInterfaceWithTwoImplementations.class);
         assertNotNull(instance.getBean());
         assertTrue(instance.getBean() instanceof Implementation2);
+        assertTrue(instance.getBean() == implementation2); // Must be the same object instance
     }
 
     @Test

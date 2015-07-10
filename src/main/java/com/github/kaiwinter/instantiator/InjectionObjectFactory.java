@@ -73,7 +73,9 @@ public final class InjectionObjectFactory {
      */
     public <T> T getInstance(Class<T> clazz) {
         LOGGER.trace("Processing: {}", clazz);
-        if (clazz.isInterface()) {
+        if (clazz == null) {
+            return null;
+        } else if (clazz.isInterface()) {
             throw new IllegalArgumentException("A class must be passed");
         }
 
@@ -109,6 +111,7 @@ public final class InjectionObjectFactory {
     /**
      * Sets the <code>field</code> in the given instance.
      * <ul>
+     * <li>If the user has set an instance by {@link #setImplementationForClassOrInterface(Class, Object)} this one is set</li>
      * <li>If the field is an interface type the implementation is looked up. If there is more than one implementation
      * the first one is used.</li>
      * <li>If field is an class it is used directly.</li> <br/>
@@ -121,9 +124,12 @@ public final class InjectionObjectFactory {
      *            the Field to set
      */
     private void setFieldInInstance(Object instance, Field field) {
-
+        Object objectInInstance = null;
         Class<?> implementation = null;
-        if (field.getType().isInterface()) {
+        if (class2Instance.containsKey(field.getType())) {
+            // Object was set by user
+            objectInInstance = class2Instance.get(field.getType());
+        } else if (field.getType().isInterface()) {
             implementation = getImplementationForInterface(field);
         } else {
             // Field is class
@@ -131,8 +137,11 @@ public final class InjectionObjectFactory {
             implementation = field.getType();
         }
 
-        if (implementation != null) {
-            Object objectInInstance = getInstance(implementation);
+        if (objectInInstance == null) {
+            objectInInstance = getInstance(implementation);
+        }
+
+        if (objectInInstance != null) {
             field.setAccessible(true);
             try {
                 field.set(instance, objectInInstance);
