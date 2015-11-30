@@ -88,6 +88,21 @@ If there is more than one implementation the first one is used. To provide a spe
 By default the factory handles all fields which are annotated with ```@Inject```. This can be changed by passing additional annotations in the constructor:
 ```InjectionObjectFactory factory = new InjectionObjectFactory(Inject.class, EJB.class, PersistenceContext.class);```
 
+## Maven
+di-instantiator is not on Maven Central. Find it on [JitPack.io](https://jitpack.io/#kaiwinter/di-instantiator/v1.0.0)
+```xml
+<repository>
+	 <id>jitpack.io</id>
+	 <url>https://jitpack.io</url>
+</repository>
+
+<dependency>
+    <groupId>com.github.kaiwinter</groupId>
+    <artifactId>di-instantiator</artifactId>
+    <version>v1.0.0</version>
+</dependency>
+```
+
 ## License
      Copyright 2015 Kai Winter
      
