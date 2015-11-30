@@ -5,10 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.lang.annotation.Annotation;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -128,10 +124,7 @@ public class InjectionObjectFactoryTest {
      */
     @Test
     public void testCustomInjectAnnotation() {
-        Set<Class<? extends Annotation>> annotationsToProcess = new HashSet<>();
-
-        annotationsToProcess.add(MyInjectionAnnotation.class);
-        InjectionObjectFactory factory = new InjectionObjectFactory(annotationsToProcess);
+        InjectionObjectFactory factory = new InjectionObjectFactory(MyInjectionAnnotation.class);
 
         StartingServiceWithCustomAnnotation instance = factory.getInstance(StartingServiceWithCustomAnnotation.class);
         assertNotNull(instance.getBean());

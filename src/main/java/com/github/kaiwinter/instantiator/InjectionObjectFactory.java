@@ -45,23 +45,20 @@ public final class InjectionObjectFactory {
     private Set<Class<? extends Annotation>> annotationsToProcess;
 
     /**
-     * Constructs a new {@link InjectionObjectFactory} which will inject beans annotated by the default annotations.
-     *
-     * @see #DEFAULT_ANNOTATIONS_TO_PROCESS
-     */
-    public InjectionObjectFactory() {
-        this(new HashSet<>(Arrays.asList(DEFAULT_ANNOTATIONS_TO_PROCESS)));
-    }
-
-    /**
      * Constructs a new {@link InjectionObjectFactory} which will inject beans which are annotated with the given
-     * <code>annotationsToProcess</code>. This overrides the {@link #DEFAULT_ANNOTATIONS_TO_PROCESS}.
+     * <code>annotationsToProcess</code>.
      *
      * @param annotationsToProcess
-     *            the annotations which should be considered as "to be injected"
+     *            the annotations which should be considered as "to be injected", if not set {@link #DEFAULT_ANNOTATIONS_TO_PROCESS} will be
+     *            used.
      */
-    public InjectionObjectFactory(Set<Class<? extends Annotation>> annotationsToProcess) {
-        this.annotationsToProcess = annotationsToProcess;
+    @SafeVarargs
+    public InjectionObjectFactory(Class<? extends Annotation>... annotationsToProcess) {
+        if (annotationsToProcess.length == 0) {
+            this.annotationsToProcess = new HashSet<>(Arrays.asList(DEFAULT_ANNOTATIONS_TO_PROCESS));
+        } else {
+            this.annotationsToProcess = new HashSet<>(Arrays.asList(annotationsToProcess));
+        }
     }
 
     /**
