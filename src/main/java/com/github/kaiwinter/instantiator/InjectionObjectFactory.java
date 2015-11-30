@@ -162,6 +162,11 @@ public final class InjectionObjectFactory {
             implementation = field.getType();
         }
 
+        if (implementation == null) {
+            LOGGER.warn("No implementation found for {}", field.getType());
+            return null;
+        }
+
         Object objectInInstance = getInstance(implementation);
         return objectInInstance;
     }
@@ -250,6 +255,7 @@ public final class InjectionObjectFactory {
      */
     public <T> void setMock(Class<? extends T> clazz, T mock) {
         setImplementingClassForInterface(clazz, mock.getClass());
+        // mock.getClass is not returning the real class which means the mock cannot be found in the map later
         setImplementationForClassOrInterface(mock.getClass(), mock);
     }
 }
