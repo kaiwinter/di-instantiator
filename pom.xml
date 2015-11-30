@@ -3,7 +3,30 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.kaiwinter</groupId>
 	<artifactId>di-instantiator</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
+	
+	<name>di-instantiator</name>
+	<description>Unit testing support for code which uses dependency injection.</description>
+	<url>https://github.com/kaiwinter/di-instantiator</url>
+
+	<scm>
+		<url>https://github.com/kaiwinter/di-instantiator</url>
+		<connection>scm:git:git://github.com/kaiwinter/di-instantiator</connection>
+		<developerConnection>scm:git:git@github.com:kaiwinter/di-instantiator.git</developerConnection>
+	</scm>
+	
+	<issueManagement>
+		<url>https://github.com/kaiwinter/di-instantiator/issues</url>
+		<system>GitHub Issues</system>
+	</issueManagement>
+	
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<properties>
 		<maven.compiler.source>1.7</maven.compiler.source>
