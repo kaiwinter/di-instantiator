@@ -29,8 +29,8 @@ public final class InjectionObjectFactory {
     @SuppressWarnings("unchecked")
     private static final Class<? extends Annotation>[] DEFAULT_ANNOTATIONS_TO_PROCESS = new Class[] { Inject.class };
 
-    /** Cached instances for classes. */
-    private Map<Class<?>, Object> class2Instance = new HashMap<>();
+    /** Cached instances for classes (or interfaces). */
+    private Map<Class<?>, Object> classOrInterface2Instance = new HashMap<>();
 
     /** Cached Reflections instances for Packages. (Are used to find implementations of interfaces. */
     private Map<Package, Reflections> package2Reflection = new HashMap<>();
@@ -38,7 +38,7 @@ public final class InjectionObjectFactory {
     /** Cached Types with missing implementations to faster skip them. */
     private Set<Type> missingImplementations = new HashSet<>();
 
-    /** Implementations for interfaces which were set by the user. */
+    /** Implementations for <b>interfaces</b> which were set by the user. */
     private Map<Class<?>, Class<?>> userSetInterface2Class = new HashMap<>();
 
     /** Fields annotated with these annotations will be set by the factory. */
@@ -67,8 +67,10 @@ public final class InjectionObjectFactory {
      * @param clazz
      *            the {@link Class} to get an instance of
      * @return fully initialized instance
+     * @throws IllegalArgumentException
+     *             if more than one implementation for an interface was found
      */
-    public <T> T getInstance(Class<T> clazz) {
+    public <T> T getInstance(Class<T> clazz) throws IllegalArgumentException {
         LOGGER.trace("Processing: {}", clazz);
         if (clazz == null) {
             return null;
@@ -76,14 +78,15 @@ public final class InjectionObjectFactory {
             throw new IllegalArgumentException("A class must be passed");
         }
 
-        T instance = (T) class2Instance.get(clazz);
+        @SuppressWarnings("unchecked")
+        T instance = (T) classOrInterface2Instance.get(clazz);
         if (instance != null) {
             return instance;
         }
 
         try {
             instance = clazz.newInstance();
-            class2Instance.put(clazz, instance);
+            classOrInterface2Instance.put(clazz, instance);
         } catch (NoClassDefFoundError | IllegalAccessException | InstantiationException e) {
             LOGGER.error("Could not instantiate class {}", clazz, e);
             // TODO KW: Automatically create mock?
@@ -109,8 +112,8 @@ public final class InjectionObjectFactory {
      * Sets the <code>field</code> in the given instance.
      * <ul>
      * <li>If the user has set an instance by {@link #setImplementationForClassOrInterface(Class, Object)} this one is set</li>
-     * <li>If the field is an interface type the implementation is looked up. If there is more than one implementation
-     * the first one is used.</li>
+     * <li>If the field is an interface type the implementation is looked up. If there is more than one implementation an
+     * IllegalArgumentException is thrown. Use {@link #setImplementationForClassOrInterface(Class, Object)} to denote one.</li>
      * <li>If field is an class it is used directly.</li> <br/>
      * The found implementation isn't instantiated directly but gets created by {@link #getInstance(Class)} (recursion).
      * </ul>
@@ -119,8 +122,10 @@ public final class InjectionObjectFactory {
      *            the object instance containing the field
      * @param field
      *            the Field to set
+     * @throws IllegalArgumentException
+     *             if more than one implementation was found
      */
-    private void setFieldInInstance(Object instance, Field field) {
+    private void setFieldInInstance(Object instance, Field field) throws IllegalArgumentException {
         Object instanceToSet = getInstanceToSet(field);
 
         if (instanceToSet != null) {
@@ -137,8 +142,8 @@ public final class InjectionObjectFactory {
      * Looks up an instance for the given <code>field</code>.
      * <ul>
      * <li>If the user has set an instance by {@link #setImplementationForClassOrInterface(Class, Object)} this one is set</li>
-     * <li>If the field is an interface type the implementation is looked up. If there is more than one implementation the first one is
-     * used.</li>
+     * <li>If the field is an interface type the implementation is looked up. If there is more than one implementation an
+     * IllegalArgumentException is thrown. Use {@link #setImplementationForClassOrInterface(Class, Object)} to denote one.</li>
      * <li>If field is an class it is used directly.</li> <br/>
      * The found implementation isn't instantiated directly but gets created by {@link #getInstance(Class)} (recursion).
      * </ul>
@@ -146,18 +151,20 @@ public final class InjectionObjectFactory {
      * @param field
      *            the Field to set
      * @return an instance which can be assigned to the field
+     * @throws IllegalArgumentException
+     *             if more than one implementation was found
      */
-    private Object getInstanceToSet(Field field) {
-        if (class2Instance.containsKey(field.getType())) {
-            // Object was set by user
-            return class2Instance.get(field.getType());
+    private Object getInstanceToSet(Field field) throws IllegalArgumentException {
+        if (classOrInterface2Instance.containsKey(field.getType())) {
+            // Re-use from cache
+            return classOrInterface2Instance.get(field.getType());
         }
 
-        Class<?> implementation = null;
+        Class<?> implementation;
         if (field.getType().isInterface()) {
             implementation = getImplementationForInterface(field);
         } else {
-            // Field is class
+            // Field is a class
             LOGGER.trace("Using class of type as it is an implementing class");
             implementation = field.getType();
         }
@@ -171,7 +178,11 @@ public final class InjectionObjectFactory {
         return objectInInstance;
     }
 
-    private Class<?> getImplementationForInterface(Field field) {
+    /**
+     * @throws IllegalArgumentException
+     *             if more than one implementation was found
+     */
+    private Class<?> getImplementationForInterface(Field field) throws IllegalArgumentException {
         if (userSetInterface2Class.containsKey(field.getType())) {
             Class<?> userSetClass = userSetInterface2Class.get(field.getType());
             LOGGER.trace("Using user-set implementation {}", userSetClass);
@@ -217,11 +228,9 @@ public final class InjectionObjectFactory {
         if (classOrInterface.isInterface()) {
             // set class to use for interface
             setImplementingClassForInterface(classOrInterface, object.getClass());
-            // set object to use for class
-            class2Instance.put(classOrInterface, object);
-        } else {
-            class2Instance.put(classOrInterface, object);
         }
+        // set object to use for class
+        classOrInterface2Instance.put(classOrInterface, object);
     }
 
     /**

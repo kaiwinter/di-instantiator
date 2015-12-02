@@ -50,10 +50,10 @@ public final class UnitTestDaoImpl implements UnitTestDao {
 ```
 
 ### The test
-For demonstration purpose we are saving an entity by calling the usecase method ```saveEntity()```.
+For demonstration purpose we are saving an entity by calling the use case method ```saveEntity()```.
 Afterwards it is loaded by its ID.
 The test uses a real database which also could be a mock.
-This might not be a real world example but demonstrates and advanced use of the library.
+This might not be a real world example but demonstrates an advanced use of the library.
 ````java
 public void test() {
 	// Create factory which sets fields annotated by @Inject and @PersistenceContext
@@ -82,7 +82,8 @@ public void test() {
 
 ### FAQ
 #### What happens if two implementations are found for one interface?
-If there is more than one implementation the first one is used. To provide a specific implementation use ```factory.setImplementationForClassOrInterface(Class, object)```.
+If there is more than one implementation found an Exception is thrown. To provide a specific implementation use 
+```setImplementingClassForInterface(Class<?> interfaceClass, Class<?> implementationClass)``` or ```factory.setImplementationForClassOrInterface(Class<? extends T> classOrInterface, T object)```.
 
 #### Which annotations are processed?
 By default the factory handles all fields which are annotated with ```@Inject```. This can be changed by passing additional annotations in the constructor:
