@@ -103,7 +103,7 @@ di-instantiator is not on Maven Central. Find it on [JitPack.io](https://jitpack
 <dependency>
     <groupId>com.github.kaiwinter</groupId>
     <artifactId>di-instantiator</artifactId>
-    <version>v1.0.0</version>
+    <version>v1.1.0</version>
 </dependency>
 ```
 
