@@ -6,6 +6,7 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -200,6 +201,14 @@ public final class InjectionObjectFactory {
             package2Reflection.put(typePackage, reflections);
         }
         Set<?> implementations = reflections.getSubTypesOf(field.getType());
+        // Filter out interfaces
+        for (Iterator<?> iterator = implementations.iterator(); iterator.hasNext();) {
+            Object object = iterator.next();
+            if (((Class<?>) object).isInterface()) {
+                iterator.remove();
+            }
+        }
+
         LOGGER.trace("Found implementations: {}", implementations);
 
         if (implementations.size() == 1) {
@@ -211,7 +220,7 @@ public final class InjectionObjectFactory {
             return null;
         } else {
             throw new IllegalArgumentException(
-                    "More then one implementation found, define one by calling setImplementingClassForInterface() or setImplementationForClassOrInterface()");
+                    "More then one implementation found for '" + field.getType() + "' define one by calling setImplementingClassForInterface() or setImplementationForClassOrInterface()");
         }
     }
 

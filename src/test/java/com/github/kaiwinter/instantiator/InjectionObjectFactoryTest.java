@@ -14,6 +14,8 @@ import com.github.kaiwinter.instantiator.testmodel.inject.ServiceBean;
 import com.github.kaiwinter.instantiator.testmodel.inject.impl.StartingServiceAsInject;
 import com.github.kaiwinter.instantiator.testmodel.mock.ServiceMockBean;
 import com.github.kaiwinter.instantiator.testmodel.mock.impl.StartingServiceWithMock;
+import com.github.kaiwinter.instantiator.testmodel.multilevelinterface.impl.MultiLevelInterfaceImplementation;
+import com.github.kaiwinter.instantiator.testmodel.multilevelinterface.impl.MultiLevelInterfaceService;
 import com.github.kaiwinter.instantiator.testmodel.noimpl.impl.StartingServiceWithInterfaceWithNoImplementation;
 import com.github.kaiwinter.instantiator.testmodel.twoimpl.HaveTwoImplementationsBean;
 import com.github.kaiwinter.instantiator.testmodel.twoimpl.impl.Implementation1;
@@ -129,5 +131,17 @@ public class InjectionObjectFactoryTest {
         StartingServiceWithCustomAnnotation instance = factory.getInstance(StartingServiceWithCustomAnnotation.class);
         assertNotNull(instance.getBean());
         assertNull(instance.getWillNotBeInjected());
+    }
+
+    /**
+     * There is an interface which gets extended by an interface. The second interface has an implementation.
+     *
+     * If an implementation for the first interface is looked up the first implementation must be used.
+     */
+    @Test
+    public void testMultiLevelInterfaceInheritance() {
+         InjectionObjectFactory factory = new InjectionObjectFactory();
+         MultiLevelInterfaceService instance = factory.getInstance(MultiLevelInterfaceService.class);
+         assertTrue(instance.firstInterface instanceof MultiLevelInterfaceImplementation);
     }
 }
