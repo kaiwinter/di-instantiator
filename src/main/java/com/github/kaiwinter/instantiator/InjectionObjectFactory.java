@@ -228,7 +228,7 @@ public final class InjectionObjectFactory {
                 reflections = new Reflections(lookupContext.getCustomPackage());
             } else {
                 // PackageScope.WHOLE_CLASSPATH
-                reflections = new Reflections();
+                reflections = new Reflections("");
             }
             package2Reflection.put(typePackage, reflections);
         }
