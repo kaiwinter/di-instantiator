@@ -8,8 +8,11 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.github.kaiwinter.instantiator.LookupContext.PackageScope;
 import com.github.kaiwinter.instantiator.testmodel.customannotation.MyInjectionAnnotation;
 import com.github.kaiwinter.instantiator.testmodel.customannotation.StartingServiceWithCustomAnnotation;
+import com.github.kaiwinter.instantiator.testmodel.diffpackage2.DifferentPackageImpl;
+import com.github.kaiwinter.instantiator.testmodel.diffpackage2.DifferentPackageServiceImpl;
 import com.github.kaiwinter.instantiator.testmodel.inject.ServiceBean;
 import com.github.kaiwinter.instantiator.testmodel.inject.impl.StartingServiceAsInject;
 import com.github.kaiwinter.instantiator.testmodel.mock.ServiceMockBean;
@@ -140,8 +143,41 @@ public class InjectionObjectFactoryTest {
      */
     @Test
     public void testMultiLevelInterfaceInheritance() {
-         InjectionObjectFactory factory = new InjectionObjectFactory();
+         InjectionObjectFactory factory = new InjectionObjectFactory(new LookupContext(PackageScope.SUBPACKAGES_ONLY));
          MultiLevelInterfaceService instance = factory.getInstance(MultiLevelInterfaceService.class);
          assertTrue(instance.firstInterface instanceof MultiLevelInterfaceImplementation);
+    }
+    
+    /**
+     * InjectionObjectFactory is advised to use a custom package for the lookup of implementation.
+     */
+    @Test
+    public void testCustomPackage() {
+        LookupContext lookupContext = new LookupContext("com.github.kaiwinter.instantiator.testmodel.inject");
+        InjectionObjectFactory factory = new InjectionObjectFactory(lookupContext);
+        StartingServiceAsInject instance = factory.getInstance(StartingServiceAsInject.class);
+        assertNotNull(instance.getServiceBeanClass());
+    }
+    
+    /**
+     * InjectionObjectFactory is advised to use a custom package for the lookup of implementation. But as the package doesn't exist there
+     * isn't an implementation.
+     */
+    @Test
+    public void testCustomPackageInvalid() {
+        LookupContext lookupContext = new LookupContext("com.github.kaiwinter.instantiator.testmodel.inject.notexisting");
+        InjectionObjectFactory factory = new InjectionObjectFactory(lookupContext);
+        StartingServiceAsInject instance = factory.getInstance(StartingServiceAsInject.class);
+        assertNull(instance.getServiceBeanClass());
+    }
+    
+    /**
+     * The implementation of an interface is located in a different package.
+     */
+    @Test
+    public void testDifferentPackage() {
+        InjectionObjectFactory factory = new InjectionObjectFactory(new LookupContext(PackageScope.WHOLE_CLASSPATH));
+        DifferentPackageServiceImpl instance = factory.getInstance(DifferentPackageServiceImpl.class);
+        assertTrue(instance.differentPackageInterface instanceof DifferentPackageImpl);
     }
 }

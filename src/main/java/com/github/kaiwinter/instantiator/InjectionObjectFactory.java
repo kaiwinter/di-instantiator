@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -15,6 +16,8 @@ import javax.inject.Inject;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.github.kaiwinter.instantiator.LookupContext.PackageScope;
 
 /**
  * Object Factory which creates fully initialized instances by means of trying to set member variables which are else
@@ -44,10 +47,12 @@ public final class InjectionObjectFactory {
 
     /** Fields annotated with these annotations will be set by the factory. */
     private Set<Class<? extends Annotation>> annotationsToProcess;
+    
+    private final LookupContext lookupContext;
 
     /**
      * Constructs a new {@link InjectionObjectFactory} which will inject beans which are annotated with the given
-     * <code>annotationsToProcess</code>.
+     * <code>annotationsToProcess</code>. The whole classpath is searched for implementations.
      *
      * @param annotationsToProcess
      *            the annotations which should be considered as "to be injected", if not set {@link #DEFAULT_ANNOTATIONS_TO_PROCESS} will be
@@ -55,6 +60,26 @@ public final class InjectionObjectFactory {
      */
     @SafeVarargs
     public InjectionObjectFactory(Class<? extends Annotation>... annotationsToProcess) {
+        this(new LookupContext(PackageScope.WHOLE_CLASSPATH), annotationsToProcess);
+    }
+    
+    /**
+     * Constructs a new {@link InjectionObjectFactory} which will inject beans which are annotated with the given
+     * <code>annotationsToProcess</code>.
+     *S
+     * @param lookupContext
+     *            defines in which scope types are looked up
+     * @param annotationsToProcess
+     *            the annotations which should be considered as "to be injected", if not set {@link #DEFAULT_ANNOTATIONS_TO_PROCESS} will be
+     *            used.
+     * 
+     * @see LookupContext
+     */
+    @SafeVarargs
+    public InjectionObjectFactory(LookupContext lookupContext, Class<? extends Annotation>... annotationsToProcess) {
+        Objects.requireNonNull(lookupContext, "No lookup context set");
+        
+        this.lookupContext = lookupContext;
         if (annotationsToProcess.length == 0) {
             this.annotationsToProcess = new HashSet<>(Arrays.asList(DEFAULT_ANNOTATIONS_TO_PROCESS));
         } else {
@@ -197,7 +222,14 @@ public final class InjectionObjectFactory {
         Package typePackage = field.getType().getPackage();
         Reflections reflections = package2Reflection.get(typePackage);
         if (reflections == null) {
-            reflections = new Reflections(typePackage.getName());
+            if (lookupContext.getPackageScope() == PackageScope.SUBPACKAGES_ONLY) {
+                reflections = new Reflections(typePackage.getName());
+            } else if (lookupContext.getCustomPackage() != null) {
+                reflections = new Reflections(lookupContext.getCustomPackage());
+            } else {
+                // PackageScope.WHOLE_CLASSPATH
+                reflections = new Reflections();
+            }
             package2Reflection.put(typePackage, reflections);
         }
         Set<?> implementations = reflections.getSubTypesOf(field.getType());
