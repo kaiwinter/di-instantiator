@@ -8,7 +8,7 @@ In contrast to needle4j this library is not injecting mock objects but instances
 As a result you´ll get a completely initialized object graph with real objects.
 You can even override the automatic implementation lookup and provide specific implementations (or mocks if you like).
 
-The library handles all fields which are annotated with ```@Inject```. This can be extended to handle ```@EJB``` fields as well for example.
+The library handles all fields which are annotated with ```@Inject```. This can be configured to handle ```@EJB``` fields as well for example.
 
 ## Example
 
@@ -16,39 +16,39 @@ The library handles all fields which are annotated with ```@Inject```. This can 
 Use-case class:
 
 ```java
-public final class UnitTestUsecaseImpl implements UnitTestUsecase {
-
-	@Inject
-	private UnitTestDao dao;
-
-	@Override
-	public UnitTestEntity loadEntity(int id) {
-		return dao.loadEntity(id);
-	}
-
-	@Override
-	public void saveEntity(UnitTestEntity entity) {
-		dao.saveEntity(entity);
-	}
+public final class DemoUsecaseImpl implements DemoUsecase {
+   
+   @Inject
+   private DemoDao dao;
+   
+   @Override
+   public DemoEntity loadEntity(int id) {
+      return dao.loadEntity(id);
+   }
+   
+   @Override
+   public void saveEntity(DemoEntity entity) {
+      dao.saveEntity(entity);
+   }
 }
 ```
 
 DAO class:
 ```java
-public final class UnitTestDaoImpl implements UnitTestDao {
-
-	@PersistenceContext(unitName = "PU")
-	private EntityManager entityManager;
-
-	@Override
-	public UnitTestEntity loadEntity(int id) {
-		return entityManager.find(UnitTestEntity.class, id);
-	}
-
-	@Override
-	public void saveEntity(UnitTestEntity entity) {
-		entityManager.persist(entity);
-	}
+public final class DemoDaoImpl implements DemoDao {
+   
+   @PersistenceContext(unitName = "PU")
+   private EntityManager entityManager;
+   
+   @Override
+   public DemoEntity loadEntity(int id) {
+      return entityManager.find(DemoEntity.class, id);
+   }
+   
+   @Override
+   public void saveEntity(DemoEntity entity) {
+      entityManager.persist(entity);
+   }
 }
 ```
 
@@ -57,29 +57,30 @@ For demonstration purpose we are saving an entity by calling the use case method
 Afterwards it is loaded by its ID.
 The test uses a real database which also could be a mock.
 This might not be a real world example but demonstrates an advanced use of the library.
-````java
+```java
+@Test
 public void test() {
-	// Create factory which sets fields annotated by @Inject and @PersistenceContext
-	InjectionObjectFactory factory = new InjectionObjectFactory(Inject.class, PersistenceContext.class);
-	
-	// Create entity manager for test database and let factory use it
-	EntityManager entityManager = Persistence.createEntityManagerFactory("TestPU", null).createEntityManager();
-	factory.setImplementationForClassOrInterface(EntityManager.class, entityManager);
-	entityManager.getTransaction().begin();
-
-	// Obtain fully initialized object from factory, this is what will happen:
-	// 1. Instantiate UnitTestUsecaseImpl
-	// 2. Lookup implementation of UnitTestDao
-	// 3. Instantiate UnitTestDaoImpl 
-	// 4. Set provided EntityManager in UnitTestDaoImpl
-	// 5. Set UnitTestDaoImpl in UnitTestUsecaseImpl
-	UnitTestUsecaseImpl usecase = factory.getInstance(UnitTestUsecaseImpl.class);
-
-	// Save entity and test the result of a reload
-	usecase.saveEntity(new UnitTestEntity(1, "test name"));
-	
-	UnitTestEntity loaded = usecase.loadEntity(1);
-	Assert.assertEquals("test name", loaded.getName());
+   // Create factory which sets fields annotated by @Inject and @PersistenceContext
+   InjectionObjectFactory factory = new InjectionObjectFactory(Inject.class, PersistenceContext.class);
+   
+   // Create entity manager for test database and let factory use it
+   EntityManager entityManager = Persistence.createEntityManagerFactory("TestPU", null).createEntityManager();
+   factory.setImplementationForClassOrInterface(EntityManager.class, entityManager);
+   entityManager.getTransaction().begin();
+   
+   // Obtain fully initialized object from factory, this is what will happen:
+   // 1. Instantiate DemoUsecaseImpl
+   // 2. Lookup implementation of DemoDao
+   // 3. Instantiate DemoDaoImpl 
+   // 4. Set provided EntityManager in DemoDaoImpl
+   // 5. Set DemoDaoImpl in DemoUsecaseImpl
+   DemoUsecaseImpl usecase = factory.getInstance(DemoUsecaseImpl.class);
+   
+   // Save entity and test the result of a reload
+   usecase.saveEntity(new DemoEntity(1, "test name"));
+   
+   DemoEntity loaded = usecase.loadEntity(1);
+   Assert.assertEquals("test name", loaded.getName());
 }
 ```
 
@@ -95,9 +96,9 @@ By default the factory handles all fields which are annotated with ```@Inject```
 ## Maven
 ```xml
 <dependency>
-    <groupId>com.github.kaiwinter</groupId>
-    <artifactId>di-instantiator</artifactId>
-    <version>1.1.1</version>
+   <groupId>com.github.kaiwinter</groupId>
+   <artifactId>di-instantiator</artifactId>
+   <version>1.1.1</version>
 </dependency>
 ```
 
